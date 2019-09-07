@@ -1,0 +1,40 @@
+#!/bin/sh -e
+#
+# S2I assemble script for the 'django alpine' image.
+# The 'assemble' script builds your application source so that it is ready to run.
+#
+# For more information refer to the documentation:
+#	https://github.com/openshift/source-to-image/blob/master/docs/builder_image.md
+#
+
+# If the 'django alpine' assemble script is executed with the '-h' flag, print the usage.
+export PIPENV_VENV_IN_PROJECT=1
+if [[ "$1" == "-h" ]]; then
+	exec /usr/libexec/s2i/usage
+fi
+
+echo "---> Installing application source..."
+cp -Rf /tmp/src/. /app/.
+
+# Restore artifacts from the previous build (if they exist).
+if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
+  echo "---> Restoring build artifacts..."
+  # currently not working
+  # mv /tmp/artifacts/* /app/
+fi
+
+echo "---> Upgrading pip to latest version ..."
+/venv/bin/pip install --upgrade pip
+
+echo "---> Installing pipenv ..."
+/venv/bin/pip install --upgrade pipenv
+
+echo "---> Building application from source..."
+
+if [[ -f Pipfile ]]; then
+    /venv/bin/pipenv install --deploy
+else
+   /venv/bin/pipenv install -r /app/requirements.txt
+fi
+
+find /app -name .git -type d -exec rm -rf {} +
