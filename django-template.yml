@@ -9,11 +9,11 @@ metadata:
     iconClass: icon-python
     openshift.io/display-name: Django
     openshift.io/long-description: This template defines resources needed to develop an Alpine based Django 2.x setup running on Python 3.6 and Nginx. It also includes resources required to create a PostgreSQL instance.
-    tags: quickstart,python,django
+    tags: quickstart,python,django,shapeblock
     template.openshift.io/bindable: "false"
-labels:
-  template: django
-  app: ${NAME}
+  labels:
+    template: django
+    from: shapeblock
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -90,8 +90,6 @@ objects:
   kind: Service
   metadata:
     name: ${NAME}
-    labels:
-      type: app
   spec:
     selector:
       app: ${NAME}
@@ -103,8 +101,6 @@ objects:
   kind: Secret
   metadata:
     name: ${NAME}-db-secret
-    labels:
-      app: ${NAME}
   stringData:
     database-user: ${POSTGRES_USER}
     database-password: ${POSTGRES_PASSWORD}
@@ -181,8 +177,6 @@ objects:
   kind: Service
   metadata:
     name: ${NAME}-db
-    labels:
-      type: service    
   spec:
     ports:
     - name: postgresql
@@ -194,8 +188,6 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     name: ${NAME}-db
-    labels:
-      app: ${NAME}
   spec:
     accessModes:
     - ReadWriteOnce
