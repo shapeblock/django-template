@@ -5,7 +5,9 @@ message: |-
 metadata:
   name: django
   annotations:
-    description: An example Python 3.6 Django application running on Alpine Linux with a PostgreSQL database. 
+    description: Django + Postgres, Python 3
+    repo: https://github.com/badri/simpledjango.git
+    icon: django
     iconClass: icon-python
     openshift.io/display-name: Django
     openshift.io/long-description: This template defines resources needed to develop an Alpine based Django 2.x setup running on Python 3.6 and Nginx. It also includes resources required to create a PostgreSQL instance.
@@ -21,6 +23,7 @@ objects:
     name: ${NAME}
     labels:
       type: app
+      stack: django
   spec:
     replicas: 1
     selector:
@@ -39,7 +42,10 @@ objects:
           image: ' '
           env:
           - name: DJANGO_SECRET_KEY
-            value: ${DJANGO_SECRET_KEY}
+            valueFrom:
+              secretKeyRef:
+                key: django-secret-key
+                name: ${NAME}-db-secret
           - name: POSTGRES_USER
             valueFrom:
               secretKeyRef:
@@ -104,6 +110,7 @@ objects:
   stringData:
     database-user: ${POSTGRES_USER}
     database-password: ${POSTGRES_PASSWORD}
+    django-secret-key: ${DJANGO_SECRET_KEY}
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -260,7 +267,7 @@ parameters:
   displayName: Git Repository URL
   name: SOURCE_REPOSITORY_URL
   required: true
-  value: https://github.com/badri/openshift-demo
+  value: https://github.com/badri/simpledjango.git
 - description: Set this to a branch name, tag or other ref of your repository if you
     are not using the default branch.
   displayName: Git Reference
@@ -283,7 +290,7 @@ parameters:
   displayName: Django secret key
   description: Unique secret key for Django app
   generate: expression
-  from: "[a-zA-Z0-9_]{40}"
+  from: '[a-zA-Z0-9_]{40}'
 - displayName: Database User
   name: POSTGRES_USER
   required: true
