@@ -1,9 +1,9 @@
-FROM python:3.6-alpine
+FROM bitnami/python:3.6-debian-10-prod
 
 LABEL maintainer="Lakshmi Narasimhan <lakshmi@shapeblock.com>"
 
-LABEL io.k8s.description="Django Alpine" \
-      io.k8s.display-name="Django alpine base image" \
+LABEL io.k8s.description="Django" \
+      io.k8s.display-name="Django Debian base image" \
       io.openshift.s2i.scripts-url="image:///usr/libexec/s2i" \
       io.openshift.expose-services="5000:http" \
       io.openshift.tags="django"
@@ -11,24 +11,19 @@ LABEL io.k8s.description="Django Alpine" \
 RUN mkdir -p /usr/libexec/s2i
 COPY ./s2i/bin/ /usr/libexec/s2i
 
-RUN apk update \
-  # psycopg2 dependencies
-  && apk add --virtual build-deps gcc python3-dev musl-dev py3-virtualenv \
-  && apk add postgresql-dev \
-  # Pillow dependencies
-  && apk add jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev \
-  # CFFI dependencies
-  && apk add libffi-dev py-cffi git make
+RUN apt-get update && \
+    apt-get -y  --no-install-recommends install git build-essential libpq-dev python3-dev \
+    libcairo2-dev libjpeg-dev libgif-dev libzmq3-dev python-cffi-backend python-virtualenv && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN virtualenv /venv
 
-# workaround for numeric UIDs in alpine.
-# https://blog.openshift.com/jupyter-on-openshift-part-6-running-as-an-assigned-user-id/
-RUN chmod g+w /etc/passwd
-
-RUN adduser -u 1001 -g 0 -D -h /app -s /bin/sh default \
+RUN useradd -u 1001 -r -g 0 -d /app -s /bin/bash -c "Default Application User" default \
     && mkdir -p /app \
-    && chown -R 1001:0 /app && chmod -R g+rwX /app && chown -R 1001:0 /venv && chmod -R g+rwX /venv
+    && chown -R 1001:0 /app && chmod -R g+rwX /app \
+    && chown -R 1001:0 /venv && chmod -R g+rwX /venv
 
 WORKDIR /app
 
