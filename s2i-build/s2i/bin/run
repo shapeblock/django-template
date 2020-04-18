@@ -1,11 +1,11 @@
 #!/bin/bash -e
 
 echo "---> Migrating database ..."
-/venv/bin/python run /app/manage.py migrate
+/venv/bin/python /app/manage.py migrate
 
 
 echo "---> collecting static files ..."
-/venv/bin/python run /app/manage.py collectstatic --noinput
+/venv/bin/python /app/manage.py collectstatic --noinput
 
 cp -r /app/staticfiles /nginx
 
